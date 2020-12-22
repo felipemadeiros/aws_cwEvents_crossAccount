@@ -1,0 +1,34 @@
+Resources:
+  EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      State: "ENABLED"
+      EventPattern:
+        source:
+          - "aws.health"
+      Targets:
+        - Arn: "arn:aws:events:us-east-1:${ReceiverAccountID}:event-bus/default"
+          Id: "id123"
+          RoleArn: !GetAtt InvokeRole.Arn
+
+  InvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/service-role/"
+      Policies:
+        - PolicyName: eventPermissions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'events:PutEvents'
+                Resource: 'arn:aws:events:us-east-1:${ReceiverAccountID}:event-bus/default'
